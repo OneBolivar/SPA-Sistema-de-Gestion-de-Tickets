@@ -1,221 +1,256 @@
-/* --- Variables de Diseño Globales --- */
+/* ==========================================================================
+   🎨 PALETA DE COLORES RE-APLICADA (Fondo Absoluto Oscuro)
+   ========================================================================== */
 :root {
-    --primary-color: #007bff;
-    --success-color: #28a745;
-    --warning-color: #ffc107;
-    --danger-color: #dc3545;
-    --dark-color: #343a40;
-    --light-bg: #f4f6f9;
-    --card-bg: #ffffff;
-    --text-color: #333333;
-    --border-radius: 6px;
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --bg-main: #00120B;          /* Negro profundo / Verde noche */
+    --purple-neon: #C200FB;      /* Morado vibrante neón */
+    --purple-glow: rgba(194, 0, 251, 0.4);
+    --card-bg: #071911;          /* Fondo de tarjetas traslúcido */
+    --card-border: #123022;      /* Bordes de los contenedores */
+    --text-glow: #E0FFE3;        /* Texto principal iluminado */
+    --text-muted: #6f8a79;       /* Texto secundario */
+    --neon-green: #00FF66;
+    --neon-yellow: #FFD600;
+    --neon-red: #FF0055;
+    --transition-fast: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- Estilos Generales y Estructura Base --- */
-body {
+/* ==========================================================================
+   🏢 BLINDAJE DEL FONDO OSCURO (Adiós al fondo blanco del navegador)
+   ========================================================================== */
+html, body {
+    background-color: var(--bg-main) !important; /* Forzar el color oscuro en toda la pantalla */
     margin: 0;
-    font-family: system-ui, -apple-system, sans-serif;
-    background-color: var(--light-bg);
-    color: var(--text-color);
-    line-height: 1.6;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    color: var(--text-glow);
+    /* Efecto de luces neón en el fondo de la pantalla */
+    background-image: 
+        radial-gradient(circle at 50% 10%, rgba(194, 0, 251, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 90% 90%, rgba(0, 255, 102, 0.04) 0%, transparent 40%);
+    background-attachment: fixed;
+    box-sizing: border-box;
 }
 
+/* ==========================================================================
+   🎯 CENTRADO ABSOLUTO DEL CONTENEDOR PRINCIPAL
+   ========================================================================== */
 #root {
     min-height: 100vh;
-    padding: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto; /* Centra horizontalmente todo el bloque de la SPA */
+    padding: 40px 20px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    justify-content: center; /* Centrado vertical para pantallas como el Login */
+    align-items: stretch;
 }
 
-/* --- Componentes Comunes: Botones y Formularios --- */
-button {
-    font-weight: bold;
-    border: none;
-    padding: 10px 15px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-button:active {
-    transform: scale(0.98);
-}
-
-input, select, textarea {
+/* ==========================================================================
+   🔑 ENTORNO DE LOGIN Y REGISTRO (Caja Perfectamente Centrada)
+   ========================================================================== */
+.login-container {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: var(--border-radius);
-    box-sizing: border-box;
-    font-size: 14px;
-}
-
-input:focus, select:focus, textarea:focus {
-    border-color: var(--primary-color);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-}
-
-/* --- Contenedor y Caja de Login --- */
-.login-wrapper, .login-container {
     max-width: 400px;
-    margin: auto;
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    text-align: center;
+    margin: auto; /* Centrado mágico con Flexbox */
+    background: linear-gradient(145deg, #04120c, #092217);
+    padding: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    box-sizing: border-box;
+    animation: fadeIn 0.5s ease-out forwards, neonPulse 4s infinite ease-in-out;
 }
 
-.login-wrapper h2 {
+.login-container h2 {
     margin-top: 0;
-    color: var(--dark-color);
+    font-size: 1.7rem;
+    font-weight: 800;
+    text-align: center;
+    background: linear-gradient(45deg, #ffffff, var(--purple-neon));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.login-wrapper button {
-    background-color: var(--primary-color);
-    color: white;
-    width: 100%;
-    font-size: 16px;
-}
-
-/* --- Estructura de los Paneles (Dashboards) --- */
-.admin-dashboard, .client-dashboard, .tech-dashboard {
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
-}
-
+/* ==========================================================================
+   🛡️ CABECERA / NAVBAR
+   ========================================================================== */
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--dark-color);
-    color: white;
-    padding: 15px 25px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    margin-bottom: 25px;
+    background: rgba(7, 25, 17, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-bottom: 2px solid var(--purple-neon);
+    padding: 20px 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.4s ease-out;
 }
 
-header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-}
+header h2 { margin: 0; font-weight: 800; }
 
-/* --- Formularios de Registro de Tickets --- */
-.form-section, .client-form-section, .tech-form-section {
+/* ==========================================================================
+   📋 SECCIONES, FORMULARIOS Y HERRAMIENTAS DE BÚSQUEDA
+   ========================================================================== */
+.form-section, .client-form-section, .tech-form-section, .toolbar-filters {
     background: var(--card-bg);
-    padding: 20px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
+    border: 1px solid var(--card-border);
+    padding: 25px;
+    border-radius: 12px;
     margin-bottom: 25px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    animation: fadeIn 0.5s ease-out;
 }
 
 .form-section h3, .client-form-section h3, .tech-form-section h3 {
     margin-top: 0;
-    color: var(--dark-color);
-    border-bottom: 2px solid var(--light-bg);
-    padding-bottom: 8px;
+    font-size: 1.2rem;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 10px;
+    color: #ffffff;
 }
 
-/* --- Grillas y Tarjetas de Tickets (Cards) --- */
+.toolbar-filters {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+/* Controles de escritura */
+input, select, textarea {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 15px;
+    background-color: #030d09;
+    color: var(--text-glow);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 14px;
+    transition: var(--transition-fast);
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: var(--purple-neon);
+    outline: none;
+    box-shadow: 0 0 12px var(--purple-glow);
+    background-color: #05140e;
+}
+
+button {
+    background-color: var(--purple-neon);
+    color: #ffffff;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px var(--purple-glow);
+    transition: var(--transition-fast);
+}
+
+button:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 20px rgba(194, 0, 251, 0.8);
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   🃏 GRILLA DE TARJETAS (Efecto Colección interactiva de Rick & Morty)
+   ========================================================================== */
 .tickets-grid, #tickets-container, #client-tickets-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    margin-top: 15px;
+    gap: 25px;
+    margin-top: 20px;
 }
 
-/* Grilla partida especial para el panel técnico */
+.ticket-card {
+    background: linear-gradient(135deg, #071911 0%, #0d291d 100%) !important;
+    border: 1px solid var(--card-border) !important;
+    border-left: 6px solid var(--purple-neon) !important; 
+    padding: 24px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5) !important;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease, box-shadow 0.3s ease !important;
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+.ticket-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: var(--purple-neon) !important;
+    box-shadow: 0 15px 30px var(--purple-glow) !important;
+}
+
+/* Controles de Selectores dentro de las tarjetas */
+.ticket-card div[style*="padding:10px"], .ticket-card div[style*="padding:8px"] {
+    background: #04100a !important;
+    border: 1px solid var(--card-border) !important;
+    border-radius: 8px !important;
+}
+
+/* Badges de Categoría */
+.ticket-card span[style*="font-size"] {
+    background: rgba(0, 230, 118, 0.12) !important;
+    color: var(--neon-green) !important;
+    border: 1px solid rgba(0, 230, 118, 0.25);
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+}
+
+/* Panel Técnico de Doble Columna */
 .tech-lists-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 25px;
+    gap: 30px;
 }
 
-@media (max-width: 768px) {
-    .tech-lists-section {
-        grid-template-columns: 1fr;
-    }
+@media (max-width: 992px) {
+    .tech-lists-section { grid-template-columns: 1fr; }
+    .toolbar-filters { flex-direction: column; align-items: stretch; gap: 10px; }
 }
 
-/* Diseño de la Tarjeta Individual */
-.ticket-card, [style*="border: 1px solid #ccc"], [style*="border: 1px solid #bbb"] {
-    background: var(--card-bg) !important;
-    border: none !important;
-    border-left: 5px solid #ccc !important; /* Borde izquierdo por defecto */
-    padding: 20px !important;
-    border-radius: var(--border-radius) !important;
-    box-shadow: var(--shadow) !important;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
+/* ==========================================================================
+   🚨 ANIMACIONES Y ALERTAS
+   ========================================================================== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* Variaciones de color según el Estado del Ticket */
-.status-en-proceso, [style*="colorEstado = '#ffc107'"] {
-    border-left-color: var(--warning-color) !important;
+@keyframes neonPulse {
+    0% { box-shadow: 0 0 15px var(--purple-glow); }
+    50% { box-shadow: 0 0 30px rgba(194, 0, 251, 0.6); border-color: #3b0a4e; }
+    100% { box-shadow: 0 0 15px var(--purple-glow); }
 }
 
-.status-asignado, [style*="colorEstado = '#17a2b8'"] {
-    border-left-color: var(--primary-color) !important;
+.btn-delete, button[style*="background-color: #720000"] {
+    background-color: transparent !important;
+    color: var(--neon-red) !important;
+    border: 1px solid var(--neon-red) !important;
+    box-shadow: none !important;
 }
 
-.status-solucionado, [style*="colorEstado = '#28a745'"] {
-    border-left-color: var(--success-color) !important;
+.btn-delete:hover, button[style*="background-color: #720000"]:hover {
+    background-color: var(--neon-red) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 15px rgba(255, 0, 85, 0.4) !important;
 }
 
-/* --- Controles Internos de las Tarjetas --- */
-.card-controls {
-    margin: 15px 0;
-    background: var(--light-bg);
-    padding: 10px;
-    border-radius: var(--border-radius);
-}
-
-.card-controls label {
-    font-size: 12px;
-    font-weight: bold;
-    display: block;
-    margin-top: 5px;
-}
-
-.card-controls select {
-    margin-bottom: 5px;
-    padding: 6px;
-}
-
-/* --- Utilidades de Botones de Acción --- */
-#btn-logout, #btn-logout-cliente, #btn-logout-tech, .btn-danger {
-    background-color: var(--danger-color);
-    color: white;
-}
-
-.btn-success, [style*="background-color: #28a745"] {
-    background-color: var(--success-color);
-    color: white;
-}
-
-#ticket-form button[type="submit"], #client-ticket-form button[type="submit"], #tech-ticket-form button[type="submit"] {
-    background-color: var(--primary-color);
-    color: white;
-    font-size: 15px;
-    width: auto;
-    align-self: flex-start;
-}
-
-/* --- Estados de Alerta y Error --- */
-.error-msg, .error, #error-msg, #error-txt {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    border-radius: var(--border-radius);
-    border: 1px solid #f5c6cb;
-    font-size: 14px;
-    margin-top: 10px;
+.error-msg, .error {
+    background-color: rgba(255, 0, 85, 0.1);
+    color: var(--neon-red);
+    border: 1px solid rgba(255, 0, 85, 0.3);
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
 }
