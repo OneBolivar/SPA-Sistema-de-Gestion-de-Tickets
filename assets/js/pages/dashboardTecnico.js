@@ -1,72 +1,77 @@
 import { ticketService } from '../services/api.js';
 
 export async function DashboardTecnicoView(container) {
-    // 1. Obtener los datos del técnico logueado desde el localStorage
-    const tecnicoLogueado = JSON.parse(localStorage.getItem('user'));
+    const sessionData = localStorage.getItem('user');
+    if (!sessionData) {
+        window.location.hash = '#/login';
+        return;
+    }
+    const tecnicoLogueado = JSON.parse(sessionData);
 
-    // 2. Renderizar la estructura HTML base de la página del técnico
+    // 1. Inyectar estructura HTML dividida en dos columnas
     container.innerHTML = `
         <div class="tech-dashboard">
-            <header style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 10px;">
-                <h2>Panel Técnico - Operador: ${tecnicoLogueado.username}</h2>
-                <button id="btn-logout-tech" style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 4px;">Cerrar Sesión</button>
+            <header>
+                <div>
+                    <h2>Centro de Operaciones Técnico</h2>
+                    <small style="color: var(--text-muted)">Especialista de guardia: <strong>${tecnicoLogueado.username}</strong></small>
+                </div>
+                <button id="btn-logout-tech" style="background-color: #720000; box-shadow: none;">Cerrar Sesión</button>
             </header>
 
-            <!-- Formulario de Creación de Tickets con Autoasignación -->
-            <section class="tech-form-section" style="margin-top: 20px; padding: 15px; border: 1px solid #007bff; background-color: #f0f8ff;">
-                <h3>Crear e Iniciar Incidencia (Autoasignada)</h3>
-                <form id="tech-ticket-form" style="display: flex; flex-direction: column; gap: 10px; max-width: 500px;">
-                    <input type="text" id="tech-title" placeholder="Título de la incidencia interna" required style="padding: 8px;">
+            <!-- FORMULARIO DE AUTOASIGNACIÓN -->
+            <section class="tech-form-section" style="background: var(--card-bg); border: 1px solid var(--border-color);">
+                <h3>Registrar Incidencia Interna (Autoasignada)</h3>
+                <form id="tech-ticket-form">
+                    <input type="text" id="tech-title" placeholder="Título o asunto del fallo de infraestructura" required>
                     
-                    <select id="tech-type" required style="padding: 8px;">
-                        <option value="">Seleccione tipo de caso</option>
+                    <select id="tech-type" required>
+                        <option value="">Clasificación del caso</option>
                         <option value="incidente">Incidente</option>
                         <option value="requerimiento">Requerimiento</option>
                         <option value="soporte">Soporte</option>
                     </select>
                     
-                    <textarea id="tech-description" placeholder="Detalles técnicos del problema encontrado..." required rows="3" style="padding: 8px;"></textarea>
+                    <textarea id="tech-description" placeholder="Anotaciones de diagnóstico técnico inicial..." required rows="3"></textarea>
                     
-                    <button type="submit" style="background-color: #007bff; color: white; border: none; padding: 10px; cursor: pointer; font-weight: bold;">Registrar y Asignármelo</button>
+                    <button type="submit">Guardar y Asignar a mi Perfil</button>
                 </form>
             </section>
 
-            <!-- Listado de incidencias dividido por responsabilidades -->
-            <section class="tech-lists-section" style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- CONTENEDORES DE DOBLE COLUMNA -->
+            <section class="tech-lists-section">
                 <div>
-                    <h3 style="color: #28a745;">Mis Casos Asignados</h3>
-                    <div id="my-tickets-container">Cargando tus tareas...</div>
+                    <h3 style="color: var(--success); margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">📋 Mis Tareas Asignadas</h3>
+                    <div id="my-tickets-container">Buscando su bitácora...</div>
                 </div>
                 <div>
-                    <h3 style="color: #6c757d;">Otros Tickets en el Sistema</h3>
-                    <div id="other-tickets-container">Cargando repositorio global...</div>
+                    <h3 style="color: var(--text-muted); margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">🌐 Resumen de Casos Globales</h3>
+                    <div id="other-tickets-container">Sincronizando repositorio global...</div>
                 </div>
             </section>
         </div>
     `;
 
-    // 3. Capturar elementos del DOM
     const ticketForm = container.querySelector('#tech-ticket-form');
     const myTicketsContainer = container.querySelector('#my-tickets-container');
     const otherTicketsContainer = container.querySelector('#other-tickets-container');
     const btnLogout = container.querySelector('#btn-logout-tech');
 
-    // 4. Cargar y clasificar la información desde json-server
+    // 2. Cargar tickets y realizar la separación lógica en memoria
     try {
         const todosLosTickets = await ticketService.getAllTickets();
         
-        // Separación lógica de los datos según las reglas del negocio
         const misCasos = todosLosTickets.filter(t => t.assignedTechId === tecnicoLogueado.username);
         const otrosCasos = todosLosTickets.filter(t => t.assignedTechId !== tecnicoLogueado.username);
 
-        renderMisCasos(misCasos, myTicketsContainer, container); // Vista interactiva (permite edición)
-        renderOtrosCasos(otrosCasos, otherTicketsContainer);     // Vista de solo lectura
+        renderMisCasos(misCasos, myTicketsContainer, container);
+        renderOtrosCasos(otrosCasos, otherTicketsContainer);
     } catch (error) {
-        myTicketsContainer.innerHTML = `<p style="color:red;">Error al conectar con json-server.</p>`;
-        otherTicketsContainer.innerHTML = `<p style="color:red;">Error al conectar con json-server.</p>`;
+        myTicketsContainer.innerHTML = `<p style="color:red;">Error de conexión de red.</p>`;
+        otherTicketsContainer.innerHTML = `<p style="color:red;">Error de conexión de red.</p>`;
     }
 
-    // 5. Evento POST: Crear ticket autoasignado
+    // 3. Evento CREATE con autoasignación automática (Regla de negocio obligatoria)
     ticketForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -74,51 +79,55 @@ export async function DashboardTecnicoView(container) {
             title: container.querySelector('#tech-title').value.trim(),
             type: container.querySelector('#tech-type').value,
             description: container.querySelector('#tech-description').value.trim(),
-            status: "Asignado",                     // Nace directamente en estado Asignado
-            assignedTechId: tecnicoLogueado.username, // Se autoasigna al técnico actual
+            status: "Asignado",                     // Nace forzosamente en estado Asignado
+            assignedTechId: tecnicoLogueado.username, // Se amarra a sí mismo
             clientUsername: tecnicoLogueado.username  // Reportado por el mismo técnico
         };
 
         try {
             await ticketService.createTicket(nuevoTicketInterno);
-            alert("Incidencia interna creada y asignada a tu perfil.");
-            DashboardTecnicoView(container); // Recarga modular de la página actual
+            alert("Incidencia interna guardada e integrada a su flujo de trabajo.");
+            DashboardTecnicoView(container);
         } catch (error) {
             alert("Fallo al guardar el registro en json-server.");
         }
     });
 
-    // 6. Cierre de sesión
     btnLogout.addEventListener('click', () => {
         localStorage.removeItem('user');
         window.location.hash = '#/login';
     });
 }
 
-// 7. Renderizado dinámico de Casos Propios (Permite modificar estado)
+// 4. Renderizado de Casos Propios (Permite modificar estado mediante PATCH)
 function renderMisCasos(tickets, container, mainContainer) {
     if (tickets.length === 0) {
-        container.innerHTML = `<p style="color: #777; font-style: italic;">No tienes incidencias asignadas en este momento.</p>`;
+        container.innerHTML = `<p style="color: var(--text-muted); font-style: italic;">Usted no posee tareas asignadas en cola.</p>`;
         return;
     }
     container.innerHTML = '';
 
     tickets.forEach(ticket => {
         const card = document.createElement('div');
-        card.style.border = "2px solid #28a745";
+        card.className = "ticket-card";
+        card.style.background = "var(--card-bg)";
         card.style.padding = "15px";
         card.style.marginBottom = "12px";
-        card.style.borderRadius = "5px";
-        card.style.backgroundColor = "#f9fff9";
+        card.style.border = "1px solid var(--border-color)";
+        card.style.borderLeft = "6px solid var(--success)";
+        card.style.borderRadius = "6px";
 
         card.innerHTML = `
-            <h4>${ticket.title} <span style="background-color:#e2e3e5; padding:2px 5px; font-size:11px; border-radius:3px;">${ticket.type}</span></h4>
-            <p style="font-size: 14px; margin: 5px 0;">${ticket.description}</p>
-            <p style="font-size: 12px; color: #555;">Usuario afectado: <strong>${ticket.clientUsername}</strong></p>
+            <div style="display:flex; justify-content:between; align-items:center;">
+                <h4 style="margin:0; color:white; flex:1;">${ticket.title}</h4>
+                <span style="background:#1F3F2F; color:var(--success); padding:1px 6px; font-size:10px; border-radius:3px;">${ticket.type}</span>
+            </div>
+            <p style="color: var(--text-light); margin:8px 0; font-size:13px;">${ticket.description}</p>
+            <p style="font-size:11px; color:var(--text-muted); margin:0 0 10px 0;">Usuario: <strong>${ticket.clientUsername}</strong></p>
             
-            <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
-                <label style="font-size: 13px; font-weight: bold;">Actualizar Estado:</label>
-                <select class="tech-status-select" data-id="${ticket.id}" style="padding: 4px;">
+            <div style="display:flex; align-items:center; gap:10px; background:#081C13; padding:8px; border-radius:4px;">
+                <label style="font-size:11px; color:var(--text-muted); font-weight:bold;">Estado:</label>
+                <select class="tech-status-select" data-id="${ticket.id}" style="margin:0; padding:4px; font-size:12px;">
                     <option value="En proceso" ${ticket.status === 'En proceso' ? 'selected' : ''}>En proceso</option>
                     <option value="Asignado" ${ticket.status === 'Asignado' ? 'selected' : ''}>Asignado</option>
                     <option value="Solucionado" ${ticket.status === 'Solucionado' ? 'selected' : ''}>Solucionado</option>
@@ -126,18 +135,17 @@ function renderMisCasos(tickets, container, mainContainer) {
             </div>
         `;
 
-        // Evento PATCH: El técnico modifica el estado de sus tickets en tiempo real
+        // Evento UPDATE: Ejecuta la llamada al servicio de actualización parcial en tiempo real
         card.querySelector('.tech-status-select').addEventListener('change', async (e) => {
-            const ticketId = e.target.dataset.id;
-            const nuevoEstado = e.target.value;
+            const id = e.target.dataset.id;
+            const estado = e.target.value;
 
             try {
-                await ticketService.updateTicket(ticketId, { status: nuevoEstado });
-                alert(`Estado cambiado exitosamente a: ${nuevoEstado}`);
-                // Volvemos a refrescar la vista para mantener sincronía
-                DashboardTecnicoView(mainContainer);
-            } catch (error) {
-                alert("Error al actualizar la base de datos.");
+                await ticketService.updateTicket(id, { status: estado });
+                alert(`Caso actualizado a: ${estado}`);
+                DashboardTecnicoView(mainContainer); // Refresca las listas de forma modular
+            } catch (err) {
+                alert("Error al intentar modificar el registro.");
             }
         });
 
@@ -145,28 +153,29 @@ function renderMisCasos(tickets, container, mainContainer) {
     });
 }
 
-// 8. Renderizado de Casos Globales (De Solo Lectura)
+// 5. Renderizado de Casos Globales (De Solo Lectura para el Técnico)
 function renderOtrosCasos(tickets, container) {
     if (tickets.length === 0) {
-        container.innerHTML = `<p style="color: #777; font-style: italic;">No hay otros tickets en el sistema.</p>`;
+        container.innerHTML = `<p style="color: var(--text-muted); font-style: italic;">No hay más incidencias en el repositorio.</p>`;
         return;
     }
     container.innerHTML = '';
 
     tickets.forEach(ticket => {
         const card = document.createElement('div');
-        card.style.border = "1px solid #ccc";
+        card.style.background = "#081C13";
         card.style.padding = "12px";
         card.style.marginBottom = "10px";
-        card.style.borderRadius = "4px";
-        card.style.backgroundColor = "#fdfdfd";
+        card.style.border = "1px solid var(--border-color)";
+        card.style.borderRadius = "6px";
 
         card.innerHTML = `
-            <h4 style="margin: 0; color: #555;">${ticket.title}</h4>
-            <p style="font-size: 13px; margin: 5px 0; color: #666;">${ticket.description}</p>
-            <p style="font-size: 12px; margin: 0; color: #888;">
-                Estado: <strong>${ticket.status}</strong> | Técnico: <strong>${ticket.assignedTechId ? ticket.assignedTechId : 'Nadie'}</strong>
-            </p>
+            <h4 style="margin:0; color:var(--text-light); font-size:14px;">${ticket.title}</h4>
+            <p style="margin:4px 0; font-size:12px; color:var(--text-muted); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${ticket.description}</p>
+            <div style="font-size:11px; color:var(--text-muted); display:flex; justify-content:space-between;">
+                <span>Estado: <strong style="color:var(--warning);">${ticket.status}</strong></span>
+                <span>Técnico: <strong>${ticket.assignedTechId ? ticket.assignedTechId : 'Nadie'}</strong></span>
+            </div>
         `;
         container.appendChild(card);
     });
