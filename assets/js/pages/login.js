@@ -1,7 +1,7 @@
 import { authService } from '../services/api.js';
 
 export async function LoginView(container) {
-    // 1. Inyectamos la estructura HTML limpia y estilizada
+    // 1. Inyectamos la estructura HTML limpia y centrada con el estilo neón
     container.innerHTML = `
         <div class="login-container">
             <h2>Gestión de Tickets - Login</h2>
@@ -10,36 +10,42 @@ export async function LoginView(container) {
                 <input type="password" id="password" placeholder="Contraseña" required autocomplete="current-password">
                 <button type="submit">Ingresar</button>
             </form>
+            
             <p id="error-msg" class="error-msg" style="display:none;"></p>
+            
+            <!-- Enlace hacia la vista de creación de cuenta -->
+            <div style="text-align: center; margin-top: 20px; font-size: 13px;">
+                <span style="color: var(--text-muted)">¿No tienes una cuenta?</span> 
+                <a href="#/registro" style="color: var(--purple-neon); font-weight: bold; text-decoration: none; margin-left: 5px;">
+                    Regístrate aquí
+                </a>
+            </div>
         </div>
     `;
 
     const form = container.querySelector('#login-form');
     const errorTxt = container.querySelector('#error-msg');
 
-    // 2. Escuchamos el evento de envío del formulario
+    // 2. Escuchamos el envío del formulario
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        // Ocultamos el mensaje de error en cada intento de login
         errorTxt.style.display = 'none';
 
         const username = container.querySelector('#username').value.trim();
-        const password = container.querySelector('#password').value.trim();
+        const inputPassword = container.querySelector('#password').value.trim();
+
+        // 🧠 VALIDACIÓN INTELIGENTE: Si el campo es solo números, se transforma a tipo numérico. Si contiene letras, sigue como string.
+        const passwordFinal = !isNaN(inputPassword) && inputPassword !== '' ? Number(inputPassword) : inputPassword;
 
         try {
-            // Llamamos al servicio que hace el fetch a json-server
-            const usuarios = await authService.login(username, password);
+            // Se envía a json-server con el tipo de dato exacto que corresponda
+            const usuarios = await authService.login(username, passwordFinal);
 
-            // Si el arreglo tiene elementos, significa que el usuario y contraseña coinciden
             if (usuarios.length > 0) {
-                // ⚠️ CORRECCIÓN CLAVE: Extraemos el primer objeto del arreglo
-                const usuarioLogueado = usuarios[0];
-                
-                // Guardamos los datos de sesión en el almacenamiento local del navegador
+                const usuarioLogueado = usuarios[0]; // Extraemos el objeto del usuario limpio
                 localStorage.setItem('user', JSON.stringify(usuarioLogueado));
 
-                // Redirección por Hash controlada según el rol de la base de datos
+                // Redirección controlada por Hash según el rol asignado
                 if (usuarioLogueado.role === 'admin') {
                     window.location.hash = '#/admin';
                 } else if (usuarioLogueado.role === 'tecnico') {
@@ -48,17 +54,12 @@ export async function LoginView(container) {
                     window.location.hash = '#/cliente';
                 }
             } else {
-                // Si json-server devuelve un arreglo vacío []
                 errorTxt.textContent = "Usuario o contraseña inválidos.";
                 errorTxt.style.display = 'block';
             }
         } catch (error) {
-            // Si el servidor de json-server puerto 3001 está apagado o incomunicado
             errorTxt.textContent = "Error de conexión con el servidor de autenticación.";
             errorTxt.style.display = 'block';
         }
     });
 }
-
-
-

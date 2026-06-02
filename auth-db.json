@@ -17,12 +17,19 @@
       "username": "tecnico2",
       "password": 123,
       "role": "tecnico"
-    },    
+    },
     {
       "id": "3",
       "username": "cliente1",
       "password": 123,
       "role": "cliente"
+    },
+    {
+      "username": "cliente2",
+      "password": 123,
+      "role": "cliente",
+      "id": "MxipBy87NoI"
     }
-  ]
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }
