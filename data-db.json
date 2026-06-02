@@ -5,9 +5,10 @@
       "title": "Fallo de conexión en el servidor principal",
       "type": "incidente",
       "description": "Los terminales no logran sincronizar la base de datos local.",
-      "status": "En proceso",
-      "assignedTechId": null,
+      "status": "Solucionado",
+      "assignedTechId": "tecnico1",
       "clientUsername": "cliente1"
     }
-  ]
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }
