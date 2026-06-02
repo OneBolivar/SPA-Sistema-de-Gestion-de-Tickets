@@ -13,22 +13,22 @@
       "role": "tecnico"
     },
     {
-      "id": "2",
+      "id": "3",
       "username": "tecnico2",
       "password": 123,
       "role": "tecnico"
     },
     {
-      "id": "3",
+      "id": "4",
       "username": "cliente1",
       "password": 123,
       "role": "cliente"
     },
     {
-      "username": "cliente2",
-      "password": 123,
-      "role": "cliente",
-      "id": "MxipBy87NoI"
+      "id": "qb9YIX_r-QE",
+      "username": "JB",
+      "password": "1a1",
+      "role": "cliente"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
