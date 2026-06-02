@@ -1,0 +1,13 @@
+{
+  "tickets": [
+    {
+      "id": "1",
+      "title": "Fallo de conexión en el servidor principal",
+      "type": "incidente",
+      "description": "Los terminales no logran sincronizar la base de datos local.",
+      "status": "En proceso",
+      "assignedTechId": null,
+      "clientUsername": "cliente1"
+    }
+  ]
+}
