@@ -2,13 +2,9 @@ import { ticketService } from '../services/api.js';
 
 export async function DashboardClienteView(container) {
     const sessionData = localStorage.getItem('user');
-    if (!sessionData) {
-        window.location.hash = '#/login';
-        return;
-    }
+    if (!sessionData) { window.location.hash = '#/login'; return; }
     const usuarioLogueado = JSON.parse(sessionData);
 
-    // 1. Inyectar estructura HTML con la paleta de colores tecnológica
     container.innerHTML = `
         <div class="client-dashboard">
             <header>
@@ -19,29 +15,24 @@ export async function DashboardClienteView(container) {
                 <button id="btn-logout-cliente" style="background-color: #720000; box-shadow: none;">Cerrar Sesión</button>
             </header>
 
-            <!-- FORMULARIO DE REPORTE -->
             <section class="client-form-section" style="background: var(--card-bg); border: 1px solid var(--border-color);">
                 <h3>Reportar Nueva Incidencia</h3>
                 <form id="client-ticket-form">
-                    <input type="text" id="client-title" placeholder="¿Qué problema presenta su equipo? (Ej: Error de impresora)" required>
-                    
+                    <input type="text" id="client-title" placeholder="¿Qué problema presenta su equipo?" required>
                     <select id="client-type" required>
-                        <option value="">Seleccione la categoría del caso</option>
-                        <option value="incidente">Incidente (Fallo técnico)</option>
-                        <option value="requerimiento">Requerimiento (Nueva solicitud)</option>
+                        <option value="">Seleccione la categoría</option>
+                        <option value="incidente">Incidente</option>
+                        <option value="requerimiento">Requerimiento</option>
                         <option value="soporte">Soporte General</option>
                     </select>
-                    
-                    <textarea id="client-description" placeholder="Describa el fallo detalladamente para ayudar al equipo técnico..." required rows="3"></textarea>
-                    
-                    <button type="submit">Enviar Reporte de Ticket</button>
+                    <textarea id="client-description" placeholder="Describa el fallo detalladamente..." required rows="3"></textarea>
+                    <button type="submit">Enviar Reporte</button>
                 </form>
             </section>
 
-            <!-- HISTORIAL PROPIO -->
             <section class="client-list-section">
                 <h3>Mis Solicitudes Enviadas</h3>
-                <div id="client-tickets-container">Sincronizando sus registros...</div>
+                <div id="client-tickets-container">Sincronizando...</div>
             </section>
         </div>
     `;
@@ -50,38 +41,30 @@ export async function DashboardClienteView(container) {
     const ticketsContainer = container.querySelector('#client-tickets-container');
     const btnLogout = container.querySelector('#btn-logout-cliente');
 
-    // 2. Consumir el READ de la API local y filtrar datos en el Frontend
     try {
         const todosLosTickets = await ticketService.getAllTickets();
-        
-        // Regla estricta de privacidad: El cliente solo ve lo que él mismo creó
         const misTickets = todosLosTickets.filter(t => t.clientUsername === usuarioLogueado.username);
-        
-        renderMisTickets(misTickets, ticketsContainer);
+        renderMisTickets(misTickets, ticketsContainer, container);
     } catch (error) {
-        ticketsContainer.innerHTML = `<p style="color:red;">Error al cargar su historial desde json-server.</p>`;
+        ticketsContainer.innerHTML = `<p style="color:red;">Error al cargar el historial.</p>`;
     }
 
-    // 3. Evento CREATE: Enviar datos del formulario al servidor
     ticketForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-
         const nuevoTicket = {
             title: container.querySelector('#client-title').value.trim(),
             type: container.querySelector('#client-type').value,
             description: container.querySelector('#client-description').value.trim(),
-            status: "En proceso",                     // Nace en este estado obligatorio
-            assignedTechId: null,                     // Inicia libre sin técnico
-            clientUsername: usuarioLogueado.username  // Autoría asignada automáticamente
+            status: "En proceso",
+            assignedTechId: null, // Regla: Nace sin técnico
+            clientUsername: usuarioLogueado.username
         };
 
         try {
             await ticketService.createTicket(nuevoTicket);
-            alert("Su incidencia ha sido registrada en el sistema.");
-            DashboardClienteView(container); // Recarga modular instantánea
-        } catch (error) {
-            alert("No se pudo procesar el registro en la base de datos.");
-        }
+            alert("Reporte registrado.");
+            DashboardClienteView(container);
+        } catch (error) { alert("Error al guardar."); }
     });
 
     btnLogout.addEventListener('click', () => {
@@ -90,10 +73,9 @@ export async function DashboardClienteView(container) {
     });
 }
 
-// 4. Renderizado dinámico de tarjetas para el panel de cliente
-function renderMisTickets(tickets, container) {
+function renderMisTickets(tickets, container, mainContainer) {
     if (tickets.length === 0) {
-        container.innerHTML = `<p style="color: var(--text-muted); font-style: italic;">Usted no tiene incidencias registradas vigentes.</p>`;
+        container.innerHTML = `<p style="color: var(--text-muted); font-style: italic;">No tiene incidencias registradas.</p>`;
         return;
     }
     container.innerHTML = ''; 
@@ -101,17 +83,13 @@ function renderMisTickets(tickets, container) {
     tickets.forEach(ticket => {
         const card = document.createElement('div');
         card.className = "ticket-card";
-        card.style.background = "var(--card-bg)";
-        card.style.padding = "20px";
-        card.style.marginBottom = "15px";
-        card.style.border = "1px solid var(--border-color)";
-        card.style.borderRadius = "8px";
-        card.style.borderLeft = "6px solid var(--accent-purple)";
-
-        // Etiqueta de estado con colores dinámicos según el avance
+        
         let badgeColor = "var(--warning)";
         if (ticket.status === "Asignado") badgeColor = "var(--primary-color)";
         if (ticket.status === "Solucionado") badgeColor = "var(--success)";
+
+        // 🧠 REGLA DE NEGOCIO: Solo mostrar botón de editar si NO tiene técnico asignado
+        const puedeEditar = ticket.assignedTechId === null;
 
         card.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -122,10 +100,25 @@ function renderMisTickets(tickets, container) {
             </div>
             <p style="margin: 5px 0; font-size: 12px; color: var(--text-muted);">Categoría: <strong>${ticket.type}</strong></p>
             <p style="color: var(--text-light); margin: 10px 0; font-size: 14px;">${ticket.description}</p>
-            <p style="margin: 0; font-size: 12px; color: var(--text-muted); border-top: 1px dashed var(--border-color); padding-top: 8px;">
+            <p style="margin: 0 0 10px 0; font-size: 12px; color: var(--text-muted);">
                 Especialista asignado: <strong style="color: white;">${ticket.assignedTechId ? ticket.assignedTechId : 'Pendiente por designar'}</strong>
             </p>
+            ${puedeEditar ? `<button class="btn-edit-desc" data-id="${ticket.id}" style="background: var(--card-border); color: white; padding: 6px 12px; font-size: 12px; box-shadow: none;">✏️ Editar Descripción</button>` : ''}
         `;
+
+        if (puedeEditar) {
+            card.querySelector('.btn-edit-desc').addEventListener('click', async () => {
+                const nuevaDesc = prompt("Modifique la descripción de su problema:", ticket.description);
+                if (nuevaDesc && nuevaDesc.trim() !== "") {
+                    try {
+                        await ticketService.updateTicket(ticket.id, { description: nuevaDesc.trim() });
+                        alert("Descripción actualizada con éxito.");
+                        DashboardClienteView(mainContainer);
+                    } catch (err) { alert("Error al actualizar."); }
+                }
+            });
+        }
+
         container.appendChild(card);
     });
 }
