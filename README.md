@@ -104,3 +104,9 @@ Para testear las funcionalidades de administración y creación de tickets de in
 ## 📄 Licencia
 
 Este proyecto está bajo la distribución de Software Libre. Siéntete libre de clonarlo, modificarlo y usarlo para fines educativos o profesionales.
+
+## PARA EJECUTARLO DESDE CONSOLA
+Debemos abrir 2 terminales.
+La primera para tickets: json-server --watch auth-db.json --port 3001
+La segunda para usuarios: json-server --watch data-db.json --port 3002
+
